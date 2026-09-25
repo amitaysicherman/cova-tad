@@ -215,7 +215,7 @@ We ablate key components of CoVA-TAD across the benchmark suite (Table 4):
 
 We demonstrated that a frozen tabular regression foundation model can serve as a competitive one-class anomaly detector without any anomaly-specific training, synthetic outlier generation, or per-table optimization. CoVA-TAD queries conditional predictive dispersion across self-supervised column projections and aggregates them into a log-determinant score capturing normal dependency violations. Across 15 ADBench datasets spanning six domains, it surpasses all 10 published baselines in macro AUROC and AUPRC, maintains robust multi-seed stability, and provides interpretable attributions. Regression in-context capability already encodes a rich model of normal conditional structure; measuring how well a query fits that structure offers an effective, training-free path for tabular anomaly detection.
 
-**Code availability.** An anonymized code repository accompanies this submission at [https://anonymous.4open.science/r/cova-tad](https://anonymous.4open.science/r/cova-tad) (mirrored at [https://github.com/amitaysicherman/cova-tad](https://github.com/amitaysicherman/cova-tad)) (and via the supplementary code archive), containing the complete CoVA-TAD estimator, data loader, benchmark runner, Isolation Forest control, and reproducible figure and table generation scripts.
+**Code availability.** An anonymized code repository accompanies this submission at [https://anonymous.4open.science/r/cova-tad-964D](https://anonymous.4open.science/r/cova-tad-964D) (and via the supplementary code archive), containing the complete CoVA-TAD estimator, data loader, benchmark runner, Isolation Forest control, and reproducible figure and table generation scripts.
 
 ---
 
@@ -433,7 +433,7 @@ Across six random seeds (Table 1 of the main paper), the seed-to-seed AUROC spre
 
 ## Appendix K: Reproducibility and Artifact Map
 
-The code, configuration files, and benchmark runners are hosted anonymously at [https://anonymous.4open.science/r/cova-tad](https://anonymous.4open.science/r/cova-tad) (mirrored at [https://github.com/amitaysicherman/cova-tad](https://github.com/amitaysicherman/cova-tad)). From a clean Python 3.10–3.12 environment, the following commands reproduce the result CSV, statistics, tables, and figures:
+The code, configuration files, and benchmark runners are hosted anonymously at [https://anonymous.4open.science/r/cova-tad-964D](https://anonymous.4open.science/r/cova-tad-964D). From a clean Python 3.10–3.12 environment, the following commands reproduce the result CSV, statistics, tables, and figures:
 
 ```bash
 python -m venv .venv
