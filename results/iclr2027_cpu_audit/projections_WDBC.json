@@ -1,0 +1,13 @@
+{
+  "mode": "projections",
+  "dataset": "WDBC",
+  "seed": 42,
+  "chunk_size": 500,
+  "threads": 4,
+  "wall_seconds": 49.28068202547729,
+  "python": "3.10.13",
+  "torch": "2.8.0+cu128",
+  "tabicl": "2.1.1",
+  "n_reference": 178,
+  "n_test_original": 189
+}

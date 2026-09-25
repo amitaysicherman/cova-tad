@@ -1,0 +1,12 @@
+{
+  "python": "3.12.4",
+  "platform": "macOS-15.6.1-arm64-arm-64bit",
+  "command_parameters": {
+    "data_dir": "data",
+    "output": "results/local_iforest_results.csv",
+    "datasets": "['Hepatitis', 'glass']",
+    "seed": "42",
+    "n_estimators": "100"
+  },
+  "note": "Same canonical split and full natural-prevalence test set as CoVA-TAD."
+}

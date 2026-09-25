@@ -1,0 +1,13 @@
+{
+  "mode": "epsilon",
+  "dataset": "pima",
+  "seed": 42,
+  "chunk_size": 500,
+  "threads": 4,
+  "wall_seconds": 8.544887218624353,
+  "python": "3.10.13",
+  "torch": "2.8.0+cu128",
+  "tabicl": "2.1.1",
+  "n_reference": 250,
+  "n_test_original": 518
+}

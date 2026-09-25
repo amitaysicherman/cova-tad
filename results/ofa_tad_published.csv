@@ -1,0 +1,16 @@
+Dataset,Domain,OFA_TAD_ROC,OFA_TAD_PR
+Hepatitis,Healthcare,0.7353,0.4846
+pima,Healthcare,0.6959,0.7037
+thyroid,Healthcare,0.9809,0.8026
+breastw,Healthcare,0.9791,0.9740
+WDBC,Healthcare,0.9996,0.9933
+Parkinson,Healthcare,0.7164,0.9348
+lympho,Healthcare,0.9911,0.9182
+wbc,Healthcare,0.9516,0.8092
+fraud,Finance,0.8785,0.3870
+campaign,Finance,0.7564,0.4515
+glass,Forensic,0.6690,0.1768
+ionosphere,Radar,0.9639,0.9742
+satimage-2,Astronautics,0.9964,0.9610
+shuttle,Astronautics,0.9998,0.9961
+SpamBase,Document,0.8599,0.8924

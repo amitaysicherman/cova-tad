@@ -1,0 +1,12 @@
+method,family,target_table_updates,anomaly_specific_pretraining,auroc,auprc,auprc_rank,auprc_wins
+LOF,Classical,yes,no,0.7959,0.6534,8.266666666666667,0
+KNN,Classical,yes,no,0.83,0.6913,7.066666666666666,0
+iForest,Classical,yes,no,0.8729,0.7392,5.066666666666666,1
+AutoEncoder,Deep OFO,yes,no,0.8592,0.6973,6.866666666666666,1
+DeepSVDD,Deep OFO,yes,no,0.8596,0.719,7.766666666666667,1
+LUNAR,Deep OFO,yes,no,0.8292,0.6777,8.233333333333333,0
+MCM,Deep OFO,yes,no,0.8406,0.7587,4.966666666666667,2
+DRL,Deep OFO,yes,no,0.8643,0.7383,4.933333333333334,2
+DisentAD,Deep OFO,yes,no,0.8595,0.7355,5.7,3
+OFA-TAD,Anomaly FM,no,yes,0.8783,0.764,4.266666666666667,2
+CoVA-TAD,Regression FM,no,no,0.8848945375137933,0.7818535659866378,2.8666666666666667,3

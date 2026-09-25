@@ -1,0 +1,13 @@
+{
+  "mode": "epsilon",
+  "dataset": "thyroid",
+  "seed": 42,
+  "chunk_size": 500,
+  "threads": 4,
+  "wall_seconds": 18.297063905745745,
+  "python": "3.10.13",
+  "torch": "2.8.0+cu128",
+  "tabicl": "2.1.1",
+  "n_reference": 1839,
+  "n_test_original": 1933
+}

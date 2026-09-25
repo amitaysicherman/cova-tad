@@ -1,0 +1,271 @@
+\documentclass{article}
+\usepackage{iclr2027_conference,times}
+\input{math_commands.tex}
+\usepackage{hyperref}
+\hypersetup{hidelinks}
+\usepackage{url}
+\usepackage{booktabs}
+\usepackage{graphicx}
+\usepackage{amsmath,amssymb,amsfonts,amsthm}
+\usepackage{microtype}
+\usepackage{xcolor}
+\input{results_summary.tex}
+
+\title{Supplementary Material for\\CoVA-TAD: Conditional Variance Aggregation\\for Training-Free Tabular Anomaly Detection}
+\author{Anonymous Authors \\ Under Review at ICLR 2027}
+\newtheorem{proposition}{Proposition}
+\newtheorem{remark}{Remark}
+% \iclrfinalcopy
+
+\begin{document}
+\maketitle
+\appendix
+
+% -----------------------------------------------------------------------
+\section{Score Aggregation and Its Limits}
+\label{app:score-deriv}
+
+Given the $|\mathcal{C}|$ per-projection empirical variances $\{v_c(x)\}_{c \in \mathcal{C}}$, define the diagonal \emph{aggregation} matrix
+\[
+  \widehat{\boldsymbol{\Sigma}}(x) = \mathrm{diag}\bigl(v_c(x) + \epsilon\bigr)_{c \in \mathcal{C}}, \qquad \epsilon = 10^{-4}.
+\]
+If these entries were the marginals of a single Gaussian distribution, its differential entropy would be
+\[
+  \mathcal{H} = \tfrac{1}{2}\log\det\!\bigl(2\pi e\,\widehat{\boldsymbol{\Sigma}}\bigr)
+              = \frac{|\mathcal{C}|}{2}\log(2\pi e) + \frac{1}{2}\sum_{c \in \mathcal{C}}\log(v_c(x)+\epsilon).
+\]
+Dropping the constant and rescaling by 2 yields the algebraic identity
+\[
+  A(x) = \sum_{c \in \mathcal{C}}\log(v_c(x)+\epsilon) = \log\det\,\widehat{\boldsymbol{\Sigma}}(x),
+\]
+which is Equation~(3). CoVA-TAD does not establish that separately queried TabICL heads form such a joint Gaussian, so $A(x)$ is a ranking heuristic, not an entropy estimate, likelihood, or covariance determinant for the data-generating distribution.
+
+% -----------------------------------------------------------------------
+\section{Localized-Kernel Reference Model}
+\label{app:gp}
+
+This section gives a Gaussian Process (GP) intuition for why predictive dispersion might rise for out-of-distribution queries. It is a \emph{reference model only}: no statement below proves that TabICLv2 is a GP, uses this kernel, or cleanly separates epistemic and aleatoric uncertainty.
+
+\paragraph{Setup.}
+Let $X = (x_1, \ldots, x_n)^\top$ be context covariates for one held-out target column, $\mathbf{y}$ the corresponding target values, and $x_*$ a query point. Assume $f \sim \mathcal{GP}(0, k)$ and observations $y_i = f(x_i) + \epsilon_i$ with $\epsilon_i \sim \mathcal{N}(0, \sigma_\epsilon^2)$. Standard GP conditioning~\citep{rasmussen2006gaussian} gives
+\begin{align}
+  \mu_*(x_*) &= k_*^\top (K + \sigma_\epsilon^2 I)^{-1} \mathbf{y}, \label{eq:gpmean}\\
+  s_*^2(x_*) &= k(x_*, x_*) - k_*^\top (K + \sigma_\epsilon^2 I)^{-1} k_*, \label{eq:gpvar}
+\end{align}
+where $K_{ij} = k(x_i, x_j)$ and $(k_*)_i = k(x_*, x_i)$.
+
+\begin{proposition}[Return to prior variance under distributional distance]
+\label{prop:prior-var}
+Assume $k$ is bounded, $k(x,x)=\kappa$ is constant, and $k(x_*, x_i) \to 0$ for every finite context point as $\operatorname{dist}(x_*, X) \to \infty$. Then $s_*^2(x_*) \to \kappa$.
+\end{proposition}
+
+\begin{proof}
+Let $A = K + \sigma_\epsilon^2 I$. Since $A \succ 0$ (positive semi-definite $K$ plus $\sigma_\epsilon^2 I$), $\|A^{-1}\|_2 \leq \sigma_\epsilon^{-2}$. The nonnegative variance reduction term satisfies
+\[
+  0 \;\leq\; k_*^\top A^{-1} k_* \;\leq\; \|A^{-1}\|_2 \|k_*\|_2^2 \;\leq\; \sigma_\epsilon^{-2} \sum_{i=1}^n k(x_*, x_i)^2 \;\to\; 0.
+\]
+Substitution into Equation~(\ref{eq:gpvar}) gives $s_*^2(x_*) \to k(x_*, x_*) - 0 = \kappa$.
+\end{proof}
+
+\begin{remark}
+The proposition concerns geometric distance from a finite context set under a localized stationary kernel. A semantic anomaly need not be distant in the feature representation used by the backbone, and a geometrically distant query need not be semantically anomalous. The result motivates predictive dispersion as an anomaly signal but does not guarantee detection for all anomaly types.
+\end{remark}
+
+\paragraph{Connection to CoVA-TAD.}
+When a reference cohort of normal rows serves as the context $X$ and a localized kernel assigns low similarity to out-of-distribution queries, the GP variance reverts toward the prior $\kappa$. The implemented sum of log-dispersions may amplify this pattern when it occurs, but that is an empirical, rather than guaranteed, property.
+
+% -----------------------------------------------------------------------
+\section{Exact Scoring Algorithm}
+\label{app:algorithm}
+
+The following procedure matches the released default used for all reported benchmark results. All normalization statistics come exclusively from the reference set. Feature selection and context sampling are deterministic given the seed.
+
+\begin{enumerate}
+  \item Given normal reference $R \in \mathbb{R}^{n \times D}$ and query set $Q \in \mathbb{R}^{m \times D}$, standardize both using column means and standard deviations from $R$ (standard deviations receive $10^{-6}$ floor stabilization to prevent division by zero).
+  \item Let $B$ be the first $\min(n, 200)$ rows of a seed-$s$ permutation of $R$. Select all columns if $D \leq 8$; otherwise select eight evenly spaced column indices $\mathcal{C}$.
+  \item For each $c \in \mathcal{C}$, prompt the frozen TabICLv2 model with $(B_{-c}, B_c)$ and query covariates $Q_{-c}$ in chunks of 500 rows. Obtain 999 quantiles and compute $v_c(x) = \operatorname{Var}_{k=1}^{999}[q_{c,k}(x)]$.
+  \item Return $A(x) = \sum_{c \in \mathcal{C}} \log(v_c(x) + 10^{-4})$; higher values indicate more anomalous rows.
+\end{enumerate}
+
+If $G$ context bags are enabled, the implementation computes $A_g$ for each bag and returns $G^{-1} \sum_g A_g$. All results in the main paper fix $G = 1$.
+
+% -----------------------------------------------------------------------
+\section{Backbone and Implementation Details}
+\label{app:backbone}
+
+Experiments use the released \texttt{tabicl==2.1.1} regressor~\citep{qu2026tabiclv2} with one estimator and no target-table parameter updates. The released version provides 999 quantile outputs, a 128-dimensional column embedding, four row-class tokens (a 512-dimensional in-context representation), 12 in-context Transformer blocks, and eight attention heads. The call \texttt{predict\_stats(\ldots, output\_type="variance")} computes empirical variance across the 999 raw quantiles. These are version-specific implementation facts, not independently ablated architectural choices. A single initialized backbone is reused across all datasets; every new \texttt{fit} call replaces only scaling statistics, context bags, and projection indices.
+
+% -----------------------------------------------------------------------
+\section{Dataset Composition and Secondary Metrics}
+\label{app:data}
+
+Table~\ref{tab:composition} reports the exact arrays used after the canonical one-class split. ``Prev.\%'' is the anomaly fraction in the test split. ``Oracle F1'' thresholds at the known test anomaly fraction; it is included for auditing purposes and is not an operational unsupervised metric, since the contamination fraction is not available without labels at deployment time.
+
+\begin{table*}[h]
+\centering
+\caption{Exact benchmark composition under the canonical OFA-TAD one-class split. Original size equals reference plus test size; no rows are discarded. Prev.\% is anomaly fraction in the test set.}
+\label{tab:composition}
+\small
+\setlength{\tabcolsep}{5pt}
+\begin{tabular}{lrrrrrrr}
+\toprule
+Dataset & Total & $D$ & Reference & Test & Anomalies & Prev.\% & Oracle F1\\
+\midrule
+\input{appendix_results_rows.tex}%
+\end{tabular}
+\end{table*}
+
+% -----------------------------------------------------------------------
+\section{Per-Dataset AUPRC for All Baselines}
+\label{app:all-pr}
+
+Tables~\ref{tab:all-pr-1} and~\ref{tab:all-pr-2} expose the per-dataset AUPRC values underlying the all-method summary in the main paper. Published comparator values are transcribed from the OFA-TAD evaluation tables; CoVA-TAD values come from the local full-test run. Baseline methods: LOF~\citep{breunig2000lof}, KNN~\citep{ramaswamy2000knn}, Isolation Forest~\citep{liu2008isolation}, Autoencoder~\citep{sakurada2014autoencoder}, DeepSVDD~\citep{ruff2018deep}, LUNAR~\citep{goodge2022lunar}, MCM~\citep{yin2024mcm}, DRL~\citep{ye2025drl}, DisentAD~\citep{ye2025disentad}, OFA-TAD~\citep{li2026towards}.
+
+\begin{table}[h]
+\centering
+\caption{Per-dataset AUPRC: classical and earlier deep baselines.}
+\label{tab:all-pr-1}
+\small
+\setlength{\tabcolsep}{4.5pt}
+\begin{tabular}{lrrrrrr}
+\toprule
+Dataset & LOF & KNN & iForest & AE & DeepSVDD & CoVA-TAD\\
+\midrule
+\input{appendix_all_baselines_1.tex}%
+\end{tabular}
+\end{table}
+
+\begin{table}[h]
+\centering
+\caption{Per-dataset AUPRC: recent learned and generalist baselines.}
+\label{tab:all-pr-2}
+\small
+\setlength{\tabcolsep}{4.5pt}
+\begin{tabular}{lrrrrrr}
+\toprule
+Dataset & LUNAR & MCM & DRL & DisentAD & OFA-TAD & CoVA-TAD\\
+\midrule
+\input{appendix_all_baselines_2.tex}%
+\end{tabular}
+\end{table}
+
+% -----------------------------------------------------------------------
+\section{Additional Result Interpretation}
+\label{app:additional-interp}
+
+\paragraph{Small-sample sensitivity.}
+Hepatitis has 13 test anomalies and lymphography has six. Their respective AUPRC differences ($+17.35$ and $-17.45$) are therefore highly influential but statistically imprecise. A leave-one-dataset-out view of the macro AUPRC improvement ranges from approximately $+0.0067$ (removing hepatitis) to $+0.0316$ (removing lymphography), reinforcing that the macro average is not a dominance statement that is uniform across dataset sizes.
+
+\paragraph{Fraud AUPRC: full-test versus subsampled result.}
+An earlier exploratory run on credit card fraud subsampled the normal test rows to match an approximately 2\% prevalence rate, yielding AUPRC $= 92.21$. That result was discarded because subsampling normals artificially inflates AUPRC by increasing prevalence. The primary result retains all 142{,}650 test rows at natural prevalence (0.34\%), yielding AUPRC $= 53.71$ versus OFA-TAD's $38.70$, a $+15.01$ point improvement. All reported AUPRC values in the main paper use full natural-prevalence test sets.
+
+\paragraph{Ranking versus decision thresholds.}
+AUROC and AUPRC assess rankings and require no contamination parameter. Deployed binary decisions require a threshold. A reference-score quantile calibrated for a chosen false-positive budget is a reasonable operational default. Conformal calibration can target coverage under exchangeability but provides no guarantee after distribution shift. The released \texttt{predict} convenience method accepts a user-provided contamination fraction; it is not used for primary results.
+
+\paragraph{Per-projection attributions.}
+The summands $\log(v_c(x) + \epsilon)$ provide per-projection score contributions that can guide attribution analysis. However, each summand identifies a \emph{violated conditional relation} (column $c$ is poorly predicted by the remaining columns) rather than assigning responsibility to a single raw input feature. Interpreting these terms as causal attributions requires additional assumptions not made here.
+
+% -----------------------------------------------------------------------
+\section{Same-Machine Isolation Forest Control}
+\label{app:local-iforest}
+
+To separate dataset-loader effects from published-table transcription errors, we re-ran Isolation Forest locally under the identical canonical split, reference-only standardization, and full natural-prevalence test set on the same Apple Silicon CPU used for CoVA-TAD. Configuration: 100 trees, \texttt{random\_state=42}, \texttt{contamination="auto"}. Table~\ref{tab:local-iforest} reports AUROC, AUPRC, and wall-clock fit and score times. Macro AUROC/AUPRC are 0.8705/0.7290; all 15 fits and score calls complete in 2.19 seconds. These values provide a reproducible hardware-controlled baseline that can be compared directly with CoVA-TAD timings in Appendix~\ref{app:runtime}.
+
+\begin{table}[h]
+\centering
+\caption{Locally executed Isolation Forest under the identical split, standardization, and hardware as CoVA-TAD. Times are seconds; environment and command parameters are stored with the CSV.}
+\label{tab:local-iforest}
+\small
+\setlength{\tabcolsep}{6pt}
+\begin{tabular}{lrrrr}
+\toprule
+Dataset & AUROC & AUPRC & Fit (s) & Score (s)\\
+\midrule
+\input{local_iforest_rows.tex}%
+Macro / total & 0.8705 & 0.7290 & 1.508 & 0.679\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+% -----------------------------------------------------------------------
+\section{Measured CoVA-TAD CPU Runtime}
+\label{app:runtime}
+
+Table~\ref{tab:cova-runtime} reports measured CoVA-TAD wall-clock times after model checkpoint loading. Thirteen datasets share one model instance; campaign includes a 4.78-second cold-start load in its reported time. The 14 measured datasets required 584.8 seconds total, with 579.2 seconds in scoring. Campaign (307.6 s) and shuttle (146.2 s) dominate. Fraud is omitted from timing: fresh full-test runs with 500- and 5{,}000-row chunks were interrupted after 369 and 458 seconds, respectively; its accuracy CSV reflects the earlier completed full-test result. GPU inference and batching across projection calls would significantly reduce these times, but hardware-controlled comparisons with OFA-TAD remain outstanding.
+
+\begin{table}[h]
+\centering
+\caption{Measured CoVA-TAD CPU scoring time (seed 42, one context bag, 500-row query chunks, one reused frozen backbone).}
+\label{tab:cova-runtime}
+\small
+\setlength{\tabcolsep}{8pt}
+\begin{tabular}{lrrr}
+\toprule
+Dataset & Test rows & Projections & Score (s)\\
+\midrule
+\input{cova_runtime_rows.tex}%
+Total & 62{,}845 & -- & 579.21\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+% -----------------------------------------------------------------------
+\section{Projection Policy and Ablation Interfaces}
+\label{app:ablations}
+
+The release exposes three column-selection policies: (i) \emph{evenly spaced} (default, deterministic given $D$), (ii) \emph{seeded random} subset of size $\min(D, 8)$, and (iii) \emph{reference-variance ranked} (highest-variance columns first, promoting projections where the reference distribution is most spread). No policy observes test labels. The multi-seed runner (Appendix~\ref{app:reproducibility}) exercises all three policies concurrently. The evenly spaced default was chosen for reproducibility and for avoiding test-set leakage in the selection criterion; the variance-ranked policy is provided for user exploration but is not reported as a primary result.
+
+Across six random seeds (Table~2 of the main paper), the seed-to-seed AUROC spread is at most 0.63 points and the AUPRC spread is at most 2.30 points, confirming that context-bag sampling does not strongly influence aggregate performance. The maximum per-dataset AUPRC variation (\seedMaxAUPRC{} points on lymphography) is driven by the small number of anomalies in that dataset rather than by instability of the score itself.
+
+% -----------------------------------------------------------------------
+\section{Reproducibility and Artifact Map}
+\label{app:reproducibility}
+
+From a clean Python 3.10--3.12 environment, the following commands reproduce the result CSV, statistics, tables, and figures:
+\begin{verbatim}
+python -m venv .venv
+source .venv/bin/activate
+pip install -e ".[figures,test]"
+NUMBA_DISABLE_JIT=1 python scripts/run_benchmark.py
+python scripts/run_local_iforest.py
+NUMBA_DISABLE_JIT=1 python scripts/run_reviewer_experiments.py
+python scripts/generate_paper_figures.py
+cd paper && tectonic main_paper.tex && tectonic appendix.tex
+\end{verbatim}
+\texttt{NUMBA\_DISABLE\_JIT} is required only when TabICL's Numba cache path is read-only.
+
+\begin{center}
+\begin{tabular}{ll}
+\toprule
+Artifact & Purpose\\
+\midrule
+\texttt{covatad/detector.py} & scikit-learn-compatible CoVA-TAD estimator\\
+\texttt{scripts/run\_benchmark.py} & canonical full-test evaluation\\
+\texttt{scripts/run\_local\_iforest.py} & same-machine executable control\\
+\texttt{scripts/run\_reviewer\_experiments.py} & multi-seed and projection-policy matrix\\
+\texttt{results/full\_test\_results.csv} & per-dataset AUROC and AUPRC outputs\\
+\texttt{results/local\_iforest\_results.csv} & local control accuracy and timing\\
+\texttt{results/full\_test\_results.metadata.json} & software and command provenance\\
+\texttt{scripts/generate\_paper\_figures.py} & statistics, tables, and quantitative figures\\
+\texttt{tests/test\_detector.py} & estimator validation tests\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+% -----------------------------------------------------------------------
+\section{Limitations, Reproducibility Statement, and Intended Use}
+\label{app:limitations}
+
+\begin{itemize}
+  \item \textbf{Reference assumption.} Benchmark reference cohorts are guaranteed anomaly-free by construction. Real-world collections may be contaminated; evaluating robustness under noisy reference sets is an important open direction.
+  \item \textbf{Repetition and seeds.} Primary results use seed 42. Six-seed stability results are reported in Table~2 of the main paper.
+  \item \textbf{Comparator provenance.} Isolation Forest is locally re-run; all other baseline metrics are transcribed from published tables. Direct local comparison with OFA-TAD and MCM is outstanding.
+  \item \textbf{Data types.} The released estimator accepts preprocessed finite numerical arrays. Raw categorical columns, missing values, timestamps, and free text require a leakage-safe preprocessing pipeline.
+  \item \textbf{Compute.} CPU wall-clock times are reported for 14 CoVA-TAD datasets and all 15 Isolation Forest controls. GPU and cross-hardware comparisons are outstanding.
+  \item \textbf{Uncertainty semantics.} Quantile variance is predictive dispersion and may conflate epistemic and aleatoric components, and may be miscalibrated under distribution shift. It is used as a ranking signal, not as a calibrated uncertainty certificate.
+  \item \textbf{Intended use.} CoVA-TAD scores are research signals intended for analyst review in a human-in-the-loop workflow, not for autonomous high-stakes decisions.
+\end{itemize}
+
+\bibliography{iclr2027_conference}
+\bibliographystyle{iclr2027_conference}
+\end{document}

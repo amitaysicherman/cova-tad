@@ -1,0 +1,15 @@
+{
+  "python": "3.12.4",
+  "platform": "macOS-15.6.1-arm64-arm-64bit",
+  "command_parameters": {
+    "data_dir": "data",
+    "output": "results/full_test_results_seed0.csv",
+    "datasets": "['Hepatitis', 'pima', 'thyroid', 'breastw', 'WDBC', 'Parkinson', 'lympho', 'wbc', 'fraud', 'campaign', 'glass', 'ionosphere', 'satimage-2', 'shuttle', 'SpamBase']",
+    "context_size": "200",
+    "projections": "8",
+    "chunk_size": "500",
+    "seed": "0",
+    "device": "cpu"
+  },
+  "note": "Full-test evaluation; natural test prevalence is preserved."
+}

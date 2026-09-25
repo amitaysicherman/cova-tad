@@ -1,0 +1,5 @@
+mode,dataset,condition,n_test,n_anomaly,prevalence,selected_cols,score_seconds,max_absolute_score_change
+batch_invariance,campaign,chunk_size=1,32,0,0.0,"[0, 7, 14, 21, 28, 35, 42, 49]",191.08166803233325,0.0
+batch_invariance,campaign,chunk_size=7,32,0,0.0,"[0, 7, 14, 21, 28, 35, 42, 49]",30.47665412724018,0.0
+batch_invariance,campaign,chunk_size=64,32,0,0.0,"[0, 7, 14, 21, 28, 35, 42, 49]",7.213140865787864,0.0
+batch_invariance,campaign,query_permutation,32,0,0.0,"[0, 7, 14, 21, 28, 35, 42, 49]",0.0,0.0

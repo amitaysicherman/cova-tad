@@ -1,0 +1,2 @@
+dataset,n_reference,n_test,n_anomaly,anomaly_prevalence,auroc,auprc,f1_oracle_prevalence,seed,context_size,projections,projection_strategy,fit_seconds,score_seconds,total_seconds,cold_start
+campaign,18274,22914,4640,0.20249629047743736,0.7474658208100449,0.4742008131156703,0.5230603448275862,42,200,8,evenly_spaced,4.780025082989596,307.6436401249375,312.4236652079271,True

@@ -1,0 +1,11 @@
+method,family,target_table_updates,anomaly_specific_pretraining,auroc,auprc
+LOF,Classical,yes,no,0.7959,0.6534
+KNN,Classical,yes,no,0.8300,0.6913
+iForest,Classical,yes,no,0.8729,0.7392
+AutoEncoder,Deep OFO,yes,no,0.8592,0.6973
+DeepSVDD,Deep OFO,yes,no,0.8596,0.7190
+LUNAR,Deep OFO,yes,no,0.8292,0.6777
+MCM,Deep OFO,yes,no,0.8406,0.7587
+DRL,Deep OFO,yes,no,0.8643,0.7383
+DisentAD,Deep OFO,yes,no,0.8595,0.7355
+OFA-TAD,Anomaly FM,no,yes,0.8783,0.7640

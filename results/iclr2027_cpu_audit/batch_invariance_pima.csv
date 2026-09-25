@@ -1,0 +1,5 @@
+mode,dataset,condition,n_test,n_anomaly,prevalence,selected_cols,score_seconds,max_absolute_score_change
+batch_invariance,pima,chunk_size=1,32,0,0.0,"[0, 1, 2, 3, 4, 5, 6, 7]",58.83269521780312,3.147125244140625e-05
+batch_invariance,pima,chunk_size=7,32,0,0.0,"[0, 1, 2, 3, 4, 5, 6, 7]",9.060144424438477,3.719329833984375e-05
+batch_invariance,pima,chunk_size=64,32,0,0.0,"[0, 1, 2, 3, 4, 5, 6, 7]",1.9776985049247742,0.0
+batch_invariance,pima,query_permutation,32,0,0.0,"[0, 1, 2, 3, 4, 5, 6, 7]",0.0,5.245208740234375e-06

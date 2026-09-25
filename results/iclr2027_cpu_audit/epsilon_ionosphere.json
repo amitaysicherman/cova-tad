@@ -1,0 +1,13 @@
+{
+  "mode": "epsilon",
+  "dataset": "ionosphere",
+  "seed": 42,
+  "chunk_size": 500,
+  "threads": 4,
+  "wall_seconds": 7.6251449752599,
+  "python": "3.10.13",
+  "torch": "2.8.0+cu128",
+  "tabicl": "2.1.1",
+  "n_reference": 112,
+  "n_test_original": 239
+}

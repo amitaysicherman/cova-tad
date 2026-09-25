@@ -1,0 +1,16 @@
+{
+  "python": "3.12.4",
+  "platform": "macOS-15.6.1-arm64-arm-64bit",
+  "command_parameters": {
+    "data_dir": "data",
+    "output": "results/cova_runtime_cpu_campaign.csv",
+    "datasets": "['campaign']",
+    "context_size": "200",
+    "projections": "8",
+    "projection_strategy": "evenly_spaced",
+    "chunk_size": "500",
+    "seed": "42",
+    "device": "cpu"
+  },
+  "note": "Full-test evaluation; natural test prevalence is preserved."
+}

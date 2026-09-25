@@ -1,0 +1,31 @@
+__pycache__/
+*.py[cod]
+*$py.class
+.DS_Store
+.pytest_cache/
+.venv/
+venv/
+env/
+dist/
+build/
+*.egg-info/
+
+# TeX temporary compilation files
+paper/*.aux
+paper/*.bbl
+paper/*.blg
+paper/*.log
+paper/*.out
+paper/*.toc
+paper/*.synctex.gz
+
+# Local temporary/scratch files
+tmp/
+.claude/
+review_full.txt
+review_raw.txt
+output/package/
+output/pdf/main_paper.pdf
+output/pdf/appendix.pdf
+*.hprof
+data/extra/

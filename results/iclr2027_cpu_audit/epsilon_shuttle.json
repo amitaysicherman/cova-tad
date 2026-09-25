@@ -1,0 +1,13 @@
+{
+  "mode": "epsilon",
+  "dataset": "shuttle",
+  "seed": 42,
+  "chunk_size": 500,
+  "threads": 4,
+  "wall_seconds": 254.68326750025153,
+  "python": "3.10.13",
+  "torch": "2.8.0+cu128",
+  "tabicl": "2.1.1",
+  "n_reference": 22793,
+  "n_test_original": 26304
+}
